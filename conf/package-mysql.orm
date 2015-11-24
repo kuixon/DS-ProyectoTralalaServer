@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<!DOCTYPE orm SYSTEM "file:/javax/jdo/orm.dtd">
+<orm>
+    <package name="data">    
+        <class name="Cancion">
+            <field name="titulo">
+                <column length="100" jdbc-type="VARCHAR"/>
+            </field>
+            <field name="artista">
+                <column length="100" jdbc-type="VARCHAR"/>
+            </field>
+          	<field name="duracion">
+                <column jdbc-type="INTEGER"/>
+            </field>
+            <field name="fechaSalida">
+                <column length="20" jdbc-type="VARCHAR"/>
+            </field>
+            <field name="precRep">
+                <column jdbc-type="DOUBLE"/>
+            </field>
+            <field name="letra">
+                <column length="255" jdbc-type="VARCHAR"/>
+            </field>
+            <field name="repros" default-fetch-group="true">
+            	<collection element-type="data.Reproduccion" dependent-element="true"/>
+            	<join/>
+        	</field>
+        </class>
+
+        <class name="Miembro">
+            <field name="nombre">
+                <column length="40" jdbc-type="VARCHAR"/>
+            </field>
+            <field name="username">
+                <column length="40" jdbc-type="VARCHAR"/>
+            </field>
+            <field name="tipoPago">
+                <column jdbc-type="INTEGER"/>
+            </field>
+            <field name="tarifa">
+                <column jdbc-type="INTEGER"/>
+            </field>
+            <field name="repros" default-fetch-group="true">
+            	<collection element-type="data.Reproduccion" dependent-element="true"/>
+            	<join/>
+        	</field>
+            <field name="pagos" default-fetch-group="true">
+            	<collection element-type="data.Pago" dependent-element="true"/>
+            	<join/>
+        	</field>
+         </class>
+       
+        <class name="Reproduccion">
+            <field name="fechaRepro">
+                <column length="20" jdbc-type="VARCHAR"/>
+            </field>
+			<field name="hora">
+                <column length="10" jdbc-type="VARCHAR"/>
+            </field>
+            <field name="miembro">
+            </field>
+            <field name="cancion">
+            </field>
+		</class>
+		
+		<class name="Pago">
+            <field name="fechaPago">
+                <column length="20" jdbc-type="VARCHAR"/>
+            </field>
+			<field name="cantidad">
+                <column jdbc-type="DOUBLE"/>
+            </field>
+            <field name="miembro">
+            </field>
+		</class>
+    </package>
+</orm>

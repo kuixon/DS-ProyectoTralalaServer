@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project basedir="." default="help" name="ProyectoTralalaServer">    
+	<property environment="env"/>
+	<property name="source.dir" location="src"/>
+   	<property name="bin.dir" location="bin"/>
+	<property name="dist.dir" location="dist"/>
+	<property name="lib.dir" location="lib"/>
+	<property name="conf.dir" location="conf"/>
+	<property name="classpath" location="bin"/>
+	<property name="export.file" value="Tralala.jar"/>
+	<property name="server.port" value="1099"/> 
+	<property name="server.IP" value="127.0.0.1"/> 
+	<property name="server.Name1" value="tralala"/>
+	<property name="policy.file" location="security/java.policy"/>	
+
+	<path id="classpath">
+	        <fileset dir="${lib.dir}">
+	            <include name="**/*.jar"/>
+	        </fileset>
+	        <pathelement location="${bin.dir}"/>
+			<pathelement location="${conf.dir}"/>
+	</path>
+	
+	<!-- TARGET : clean -->
+	    <target name="clean">
+	        <delete includeEmptyDirs="true" quiet="true">
+	            <fileset dir="${bin.dir}" includes="**/*.*"/>
+	        </delete>
+			<delete dir="${bin.dir}"/>
+	    </target>
+
+	    <!-- TARGET : prepare -->
+	    <target name="prepare">
+	        <mkdir dir="${bin.dir}"/>
+	    </target>
+
+	    <!-- TARGET : compile -->
+	    <target name="compile" depends="clean, prepare">
+	        <javac srcdir="${source.dir}" destdir="${bin.dir}" classpathref="classpath" includeantruntime="no">
+	            <include name="**/*.java"/>
+	        </javac>
+	    </target>
+		
+	    <!-- TARGET : enhance -->
+	    <target name="enhance" depends="compile">
+	    	<taskdef name="enhancer" classpathref="classpath" classname="org.datanucleus.enhancer.EnhancerTask" />
+	    	
+	   		<enhancer classpathref="classpath" failonerror="true">
+	            <sysproperty key="log4j.configuration" value="file:${conf.dir}/log4j.properties"/>
+	            <fileset dir="${bin.dir}">
+	                <include name="**/*.class"/>
+	            </fileset>
+	   		</enhancer>
+	    </target>
+		
+	    <!-- TARGET : SchemaTool "create" -->
+	    <target name="createschema" depends="enhance, deleteschema">
+	        <taskdef name="schematool" classpathref="classpath" classname="org.datanucleus.store.schema.SchemaToolTask"/>
+
+	        <schematool mode="create" classpathref="classpath" failonerror="true" persistenceUnit="Tralala" props="${conf.dir}/META-INF/persistence.xml">
+	            <sysproperty key="log4j.configuration" value="file:${conf.dir}/log4j.properties"/>
+	            <fileset dir="${bin.dir}">
+	                <include name="**/*.class"/>
+	            </fileset>
+	        </schematool>
+	    </target>
+
+	    <!-- TARGET : SchemaTool "delete" -->
+	    <target name="deleteschema">
+	        <taskdef name="schematool" classpathref="classpath" classname="org.datanucleus.store.schema.SchemaToolTask"/>
+
+	    	<schematool mode="delete" classpathref="classpath" failonerror="true" persistenceUnit="Tralala" props="${conf.dir}/META-INF/persistence.xml">
+	    		<sysproperty key="log4j.configuration" value="file:${conf.dir}/log4j.properties"/>
+	        	<fileset dir="${bin.dir}">
+	                <include name="**/*.class"/>
+	            </fileset>
+	        </schematool>
+	    </target>
+	
+	<target name="help">
+		<echo>Usage: ant [build | export | server1]</echo>
+	</target>
+	
+	<target name="build" description="Builds the project">
+		<delete dir="${bin.dir}"/>
+		<mkdir dir="${bin.dir}"/>
+		<javac srcdir="${source.dir}" destdir="${bin.dir}" classpathref="classpath" deprecation="true" fork="true" includeantruntime="no"/>
+    </target>
+	
+	<target name="export" depends="build" description="Export the project into a .jar file">
+		<delete dir="${dist.dir}"/>
+		<mkdir dir="${dist.dir}"/>
+		<jar destfile="${dist.dir}/${export.file}" basedir="${bin.dir}" includes="**/ITralalaFacade.class, **/CancionDTO.class, **/MiembroDTO.class"/>
+	</target>	
+    
+	<target name="server1" depends="createschema" description="Runs Server program">
+		<java classname="server.TralalaServer" classpathref="classpath" fork="true">
+        	<jvmarg value="-Djava.rmi.server.codebase=file:${bin.dir}/"/>
+			<jvmarg value="-Djava.security.policy=${policy.file}"/>
+			<jvmarg value="-Dlog4j.configuration=log4j.properties"/>
+        	<arg value="${server.IP}"/> 
+	 		<arg value="${server.port}"/> 
+			<arg value="${server.Name1}"/> 
+        </java>
+    </target>
+
+</project>
